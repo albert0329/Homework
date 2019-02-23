@@ -18,10 +18,10 @@ def scrape():
     html = browser.html
     soup = bs(html, "html.parser")
 
-    results_title = soup.find_all('div', class_='content_title').find('a')
-    news_title = results_title.text
+    results_title = soup.find('div', class_='content_title')
+    news_title = results_title.find('a').text
 
-    results_paragraph = soup.find_all('div', class_='article_teaser_body')
+    results_paragraph = soup.find('div', class_='rollover_description_inner')
     news_p = results_paragraph.text
 
     mars_info["news_title"] = news_title
@@ -67,8 +67,8 @@ def scrape():
         item = row.text.strip()
         items.append(item)
 
-    for row in column2:
-        measurement = row.text.strip()
+    for row2 in column2:
+        measurement = row2.text.strip()
         measurements.append(measurement)
 
     facts = pd.DataFrame({
@@ -95,7 +95,7 @@ def scrape():
     
     title = soup5.find_all('h3')
     title_clean = [x.text.split(';')[-1].strip() for x in title]
-    hemisphere_image_url = [{"title": title_clean, "img_url": image_url} for title_clean, image_url in zip (title_clean, image_url)]
+    hemisphere_image_url = [{"title": title_clean, "image_url": image_url} for title_clean, image_url in zip (title_clean, image_url)]
     
     mars_info["hemisphere_image_url"] = hemisphere_image_url
 
