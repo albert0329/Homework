@@ -1,14 +1,7 @@
 // @TODO: YOUR CODE HERE!
-
-var d3data;
-
-d3.csv('assets/data/data.csv').then(data => {
-	d3data = data;
-	parseData();
-	console.log(d3data);
-	//withPlotly(data);
-	withD3();
-});
+let d3data;
+let curX = 'income';
+let curY = 'smokes';
 
 function parseData() {
   d3data.forEach(function(data) {
@@ -33,10 +26,17 @@ function withPlotly(data) {
 	Plotly.newPlot('scatter', trace);
 }
 
-function withD3() {
+function changeX(newX) {
+	curX = newX;
+	withD3();
+}
 
-  var curX = 'income';
-  var curY = 'smokes';
+function changeY(newY) {
+	curY = newY;
+	withD3();
+}
+
+function withD3() {
 
   var svgArea = d3.select("#scatter").select("svg");
 
@@ -45,11 +45,11 @@ function withD3() {
   }
 
   var svgWidth = window.innerWidth * 0.8;
-  var svgHeight = window.innerHeight * 0.7;
+  var svgHeight = window.innerHeight * 0.75;
 
   var margin = {
     top: 50,
-    bottom: 50,
+    bottom: 100,
     right: 50,
     left: 50
   };
@@ -64,14 +64,15 @@ function withD3() {
     .attr("width", svgWidth);
 
   var chartGroup = svg.append("g")
-    .attr("transform", `translate(${margin.left}, ${margin.top})`);
+    .attr("transform", `translate(${margin.left}, ${margin.top})`)
+    .attr("class", "cgroup");
 
   var xScale = d3.scaleLinear()
-    .domain(d3.extent(d3data, d => d[curX]))
+    .domain([d3.min(d3data, d => d[curX]) * 0.9, d3.max(d3data, d => d[curX]) * 1.1])
     .range([0, width]);
 
   var yScale = d3.scaleLinear()
-    .domain(d3.extent(d3data, d => d[curY]))
+    .domain([d3.min(d3data, d => d[curY]) * 0.9, d3.max(d3data, d => d[curY]) * 1.1])
     .range([height, 0]);
 
   // create axes
@@ -86,27 +87,89 @@ function withD3() {
   chartGroup.append("g")
     .call(yAxis);
 
-  var circlesGroup = chartGroup.selectAll("circle")
-    .data(d3data)
-    .enter()
-    .append("circle")
+  var incomeLabel = chartGroup.append("text")
+    .attr("transform", `translate(${width / 2}, ${height + margin.top})`)
+  	.classed("active", curX === 'income')
+  	.classed("inactive", curX != 'income')
+  	.text("Income");
+
+  var povertyLabel = chartGroup.append("text")
+    .attr("transform", `translate(${width / 2}, ${height + margin.top + 20})`)
+  	.classed("active", curX === 'poverty')
+  	.classed("inactive", curX != 'poverty')
+  	.text("Poverty");
+
+  var ageLabel = chartGroup.append("text")
+    .attr("transform", `translate(${width / 2}, ${height + margin.top + 40})`)
+  	.classed("active", curX === 'age')
+  	.classed("inactive", curX != 'age')
+  	.text("Age");
+
+  	povertyLabel.on("click", function() {
+  		curX = "poverty";
+  		withD3();
+  	})
+
+  	ageLabel.on("click", function() {
+  		curX = "age";
+  		withD3();
+  	})
+
+  	incomeLabel.on("click", function() {
+		curX = "income";
+		withD3();
+  	})
+//  var obeseLabel = chartGroup.append("text")
+//    .attr("transform", "rotate(-90)", 'translate(' + width)
+//    .attr('text-anchor', 'middle')
+//  	.classed("active", curY === 'obesity')
+//  	.classed("inactive", curY != 'obesity')
+//  	.text("Obese (%)");
+//
+//  var smokesLabel = chartGroup.append("text")
+//    .attr("transform", `translate(${width + margin.top + 20}, ${height/2})`)
+//  	.classed("active", curX === 'smokes')
+//  	.classed("inactive", curX != 'smokes')
+//  	.text("Smokes (%)");
+//
+//  var healthcareLabel = chartGroup.append("text")
+//    .attr("transform", "rotate(-90)", `translate(${width}, ${height/2})`)
+//  	.classed("active", curX === 'healthcare')
+//  	.classed("inactive", curX != 'healthcare')
+//  	.text("Lacks Healthcare (%)");
+//
+//  	obeseLabel.on("click", function() {
+//  		curY = "obesity";
+//  		withD3();
+//  	})
+//
+//  	smokesLabel.on("click", function() {
+//  		curY = "smokes";
+//  		withD3();
+//  	})
+//
+//  	healthcareLabel.on("click", function() {
+//		curY = "healthcare";
+//		withD3();
+//  	})
+//
+  var circlesGroup = svg.selectAll("circle").data(d3data).enter();
+    
+  circlesGroup
+  	.append("circle")
     .attr("cx", d => xScale(d[curX]))
     .attr("cy", d => yScale(d[curY]))
-    .attr("r", "15")
+    .attr("r", "10")
     .attr("class", d => "stateCircle " + d.abbr)
-    .attr("fill", "lightblue")
-    .attr("stroke-width", "1")
-    .attr("stroke", "grey");
+    .classed("stateCircle", true);
 
-  var circlesName = chartGroup.selectAll("text")
-  	.data(d3data)
-  	.enter()
+  circlesGroup
   	.append("text")
   	.text(d => d.abbr)
   	.attr("dx", d => xScale(d[curX]))
   	.attr("dy", d => yScale(d[curY]))
-  	.attr("class", "stateText")
-  	.attr("font-size", 10);
+  	.attr("font-size", "8")
+  	.classed("stateText", true);
 
   // Step 1: Initialize Tooltip
   var toolTip = d3.tip()
@@ -119,12 +182,12 @@ function withD3() {
   // Step 2: Create the tooltip in chartGroup.
   chartGroup.call(toolTip);
 
-  // Step 3: Create "mouseover" event listener to display tooltip
-  circlesGroup.on("mouseover", function(d) {
-    toolTip.show(d, this);
-  })
-  // Step 4: Create "mouseout" event listener to hide tooltip
-    .on("mouseout", function(d) {
-      toolTip.hide(d);
-    });
 }
+
+d3.csv('assets/data/data.csv').then(data => {
+	d3data = data;
+	parseData();
+	console.log(d3data);
+	//withPlotly(data);
+	withD3();
+});

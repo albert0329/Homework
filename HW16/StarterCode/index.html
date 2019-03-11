@@ -27,6 +27,20 @@
     </div>
     <div class="row">
       <div class="col-xs-12  col-md-9">
+        <div>
+          X:
+          <select onchange="changeX(this.value)">
+            <option value='income'>Income</option>
+            <option value="poverty">Poverty</option>
+            <option value="age">Age</option>
+          </select>
+          Y:
+          <select onchange="changeY(this.value)">
+            <option value='smokes'>Smoker</option>
+            <option value="obesity">Obesity</option>
+            <option value="healthcare">HealthCare</option>
+          </select>
+        </div>
         <div id="scatter">
           <!-- We append our chart here. -->
         </div>
