@@ -1,3 +1,4 @@
+
 # Dependencies
 import numpy as np
 import pandas as pd
@@ -52,6 +53,7 @@ headers = {
     'Authorization': f'Bearer {api_key}',
 }
 
+
 params = {
     'price': price,
     'from': start_date,
@@ -59,9 +61,8 @@ params = {
     'granularity': gran,
 }
 
+
 response = requests.get(f'https://api-fxpractice.oanda.com/v3/instruments/{pair}/candles', headers=headers, params=params).json()
-
-
 
 data = pd.DataFrame.from_dict(json_normalize(response['candles']), orient='columns')
 data = data.rename(index = str, columns = 
@@ -106,6 +107,7 @@ with engine.connect() as con:
                 Minute double,
                 PRIMARY KEY (unix)
                 )
+
 ;''')
 
 data.to_sql(name=table_name_Daily, con=engine, if_exists='append', index=False)
@@ -118,3 +120,6 @@ with engine.connect() as con:
             on {table_name_Daily}.unix = {table_name_Source}.unix
     where {table_name_Source}.unix is null
 ;''')
+
+
+
